@@ -15,7 +15,6 @@ public class TestConnection {
         Class.forName("com.mysql.cj.jdbc.Driver");
         List<Person> person = new ArrayList<>();
         try (Connection con = DriverManager.getConnection(url, userName, password)) {
-            System.out.println("Connection successful");
             Statement statement = con.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
             while (resultSet.next()) {
