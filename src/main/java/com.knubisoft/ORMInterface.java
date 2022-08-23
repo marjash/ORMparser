@@ -1,29 +1,30 @@
 package com.knubisoft;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
-import java.sql.ResultSet;
 import java.util.List;
 
 public interface ORMInterface {
+
+//    interface DataReadWriteSource {
+//    }
+
     @SneakyThrows
-    <T> List<T> transform(DataInputSource content, Class<T> cls);
+    <T> List<T> readAll(DataReadWriteSource<?> source, Class<T> cls);
 
-    interface DataInputSource {
-    }
-
-    @RequiredArgsConstructor
-    @Getter
-    final class StringInputSource implements DataInputSource {
-        private final String content;
-    }
-
-    @RequiredArgsConstructor
-    @Getter
-    final class DatabaseInputSource implements DataInputSource {
-        private final ResultSet resultSet;
-    }
+    @SneakyThrows
+    <T> void writeAll(DataReadWriteSource<?> source, List<T> objects);
+//
+//    @RequiredArgsConstructor
+//    @Getter
+//    final class FileReadWriteSource implements DataReadWriteSource {
+//        private final File source;
+//    }
+//
+//    @RequiredArgsConstructor
+//    @Getter
+//    final class ConnectionReadWriteSource implements DataReadWriteSource {
+//        private final Connection source;
+//    }
 
 }

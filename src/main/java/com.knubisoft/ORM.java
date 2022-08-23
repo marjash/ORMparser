@@ -1,11 +1,15 @@
 package com.knubisoft;
 
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.sql.ResultSet;
@@ -15,13 +19,23 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 
-public class ORM2 implements ORMInterface {
+public class ORM implements ORMInterface {
 
     @Override
     @SneakyThrows
     public <T> List<T> readAll(DataReadWriteSource<?> inputSource, Class<T> cls) {
         Table table = convertToTable(inputSource);
         return convertTableToListOfClasses(table, cls);
+    }
+
+    @SneakyThrows
+    @Override
+    public <T> void writeAll(DataReadWriteSource<?> source, List<T> objects) {
+//        File file = ((FileReadWriteSource) source).getSource();
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode jsonNode = mapper.valueToTree(objects);
+        ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
+        writer.writeValue(new File("C:\\Users\\Oksana\\OneDrive\\Робочий стіл\\ORMparser\\src\\main\\resources\\sample2.json"), jsonNode);
     }
 
     private <T> List<T> convertTableToListOfClasses(Table table, Class<T> cls) {
@@ -97,8 +111,9 @@ public class ORM2 implements ORMInterface {
         @Override
         public Table parseToTable(FileReadWriteSource content) {
             XmlMapper mapper = new XmlMapper();
-            JsonNode result = mapper.readTree(content.getContent());
-            return null;
+            JsonNode tree = mapper.readTree(content.getContent()).get("person");
+            Map<Integer, Map<String, String>> result = JSONParsingStrategy.buildTable(tree);
+            return new Table(result);
         }
     }
 
@@ -113,7 +128,7 @@ public class ORM2 implements ORMInterface {
             return new Table(result);
         }
 
-        private Map<Integer, Map<String, String>> buildTable(JsonNode tree) {
+        private static Map<Integer, Map<String, String>> buildTable(JsonNode tree) {
             Map<Integer, Map<String, String>> map = new LinkedHashMap<>();
             int index = 0;
             for (JsonNode each : tree) {
@@ -124,7 +139,7 @@ public class ORM2 implements ORMInterface {
             return map;
         }
 
-        private Map<String, String> buildRow(JsonNode each) {
+        private static Map<String, String> buildRow(JsonNode each) {
             Map<String, String> item = new LinkedHashMap<>();
             Iterator<Map.Entry<String, JsonNode>> itr = each.fields();
             while (itr.hasNext()) {
@@ -203,7 +218,7 @@ public class ORM2 implements ORMInterface {
             int rowId = 0;
             while (rs.next()) {
                 Map<String, String> row = new LinkedHashMap<>();
-                for (int index = 1; index < metadata.getColumnCount(); index++) {
+                for (int index = 1; index <= metadata.getColumnCount(); index++) {
                     row.put(metadata.getColumnName(index), rs.getString(index));
                 }
                 result.put(rowId, row);

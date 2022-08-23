@@ -5,7 +5,7 @@
         <age>49</age>
         <salary>2157</salary>
         <position>middle</position>
-<!--        <dateOfBirth>10-11-2020</dateOfBirth>-->
+        <dateOfBirth>10-11-2020</dateOfBirth>
     </person>
     <person>
         <name>Papageno</name>
