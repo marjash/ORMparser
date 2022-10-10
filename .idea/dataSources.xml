@@ -16,10 +16,10 @@
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="sample" uuid="d0a590a5-c756-4c1a-96e1-063f8859b18f">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>e75cbd16-b62f-484c-a3ab-3e33982324ea</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\Oksana\OneDrive\Робочий стіл\ORMparser\sample.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:sample.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>

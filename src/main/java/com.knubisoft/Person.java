@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -18,5 +16,5 @@ public class Person {
     private int age;
     private int salary;
     private String position;
-    private LocalDate dateOfBirth;
+    private String dateOfBirth;
 }

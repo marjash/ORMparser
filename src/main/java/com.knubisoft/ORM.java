@@ -1,19 +1,10 @@
 package com.knubisoft;
 
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,11 +22,11 @@ public class ORM implements ORMInterface {
     @SneakyThrows
     @Override
     public <T> void writeAll(DataReadWriteSource<?> source, List<T> objects) {
-//        File file = ((FileReadWriteSource) source).getSource();
-        ObjectMapper mapper = new ObjectMapper();
-        ArrayNode jsonNode = mapper.valueToTree(objects);
-        ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
-        writer.writeValue(new File("C:\\Users\\Oksana\\OneDrive\\Робочий стіл\\ORMparser\\src\\main\\resources\\sample2.json"), jsonNode);
+        if (source instanceof FileReadWriteSource) {
+            ParsingStrategy<FileReadWriteSource> parsingStrategy = getStringParsingStrategy((FileReadWriteSource) source);
+            parsingStrategy.write(source, objects);
+        }
+//        JSONParsingStrategy.write(source, objects);
     }
 
     private <T> List<T> convertTableToListOfClasses(Table table, Class<T> cls) {
@@ -89,151 +80,29 @@ public class ORM implements ORMInterface {
     }
 
     private ParsingStrategy<FileReadWriteSource> getStringParsingStrategy(FileReadWriteSource inputSource) {
-        String content = inputSource.getContent();
-        char firstChar = content.charAt(0);
-        switch (firstChar) {
-            case '{':
-            case '[':
-                return new JSONParsingStrategy();
-            case '<':
-                return new XMLParsingStrategy();
-            default:
-                return new CSVParsingStrategy();
-        }
-    }
-
-    interface ParsingStrategy<T extends DataReadWriteSource> {
-        Table parseToTable(T content);
-    }
-
-    static class XMLParsingStrategy implements ParsingStrategy<FileReadWriteSource> {
-        @SneakyThrows
-        @Override
-        public Table parseToTable(FileReadWriteSource content) {
-            XmlMapper mapper = new XmlMapper();
-            JsonNode tree = mapper.readTree(content.getContent()).get("person");
-            Map<Integer, Map<String, String>> result = JSONParsingStrategy.buildTable(tree);
-            return new Table(result);
-        }
-    }
-
-    static class JSONParsingStrategy implements ParsingStrategy<FileReadWriteSource> {
-
-        @SneakyThrows
-        @Override
-        public Table parseToTable(FileReadWriteSource content) {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode tree = mapper.readTree(content.getContent());
-            Map<Integer, Map<String, String>> result = buildTable(tree);
-            return new Table(result);
-        }
-
-        private static Map<Integer, Map<String, String>> buildTable(JsonNode tree) {
-            Map<Integer, Map<String, String>> map = new LinkedHashMap<>();
-            int index = 0;
-            for (JsonNode each : tree) {
-                Map<String, String> item = buildRow(each);
-                map.put(index, item);
-                index++;
-            }
-            return map;
-        }
-
-        private static Map<String, String> buildRow(JsonNode each) {
-            Map<String, String> item = new LinkedHashMap<>();
-            Iterator<Map.Entry<String, JsonNode>> itr = each.fields();
-            while (itr.hasNext()) {
-                Map.Entry<String, JsonNode> next = itr.next();
-                item.put(next.getKey(), next.getValue().textValue());
-            }
-            return item;
-        }
-
-    }
-
-    static class CSVParsingStrategy implements ParsingStrategy<FileReadWriteSource> {
-
-        public static final String DELIMITER = ",";
-        public static final String COMMENT = "--";
-
-        @Override
-        public Table parseToTable(FileReadWriteSource content) {
-            List<String> lines = Arrays.asList(content.getContent().split(System.lineSeparator()));
-            Map<Integer, String> mapping = buildMapping(lines.get(0));
-            Map<Integer, Map<String, String>> result = buildTable(lines.subList(1, lines.size()), mapping);
-            return new Table(result);
-        }
-
-        private Map<Integer, Map<String, String>> buildTable(List<String> lines, Map<Integer, String> mapping) {
-            Map<Integer, Map<String, String>> result = new LinkedHashMap<>();
-            for (int index = 0; index < lines.size(); index++) {
-                String line = lines.get(index);
-                result.put(index, buildRow(mapping, line));
-            }
-            return result;
-        }
-
-        private Map<String, String> buildRow(Map<Integer, String> mapping, String line) {
-            Map<String, String> nameToValueMap = new LinkedHashMap<>();
-            String[] rowItems = splitLine(line);
-            for (int rowIndex = 0; rowIndex < rowItems.length; rowIndex++) {
-                String value = rowItems[rowIndex];
-                nameToValueMap.put(mapping.get(rowIndex), value);
-            }
-            return nameToValueMap;
-        }
-
-        private Map<Integer, String> buildMapping(String firstLine) {
-            Map<Integer, String> map = new LinkedHashMap<>();
-            String[] array = splitLine(firstLine);
-            for (int index = 0; index < array.length; index++) {
-                String value = array[index];
-                if (value.contains(COMMENT)) {
-                    value = value.split(COMMENT)[0];
-                }
-                map.put(index, value.trim());
-            }
-            return map;
-        }
-
-        private static String[] splitLine(String line) {
-            return line.split(DELIMITER);
-        }
-    }
-
-    static class DatabaseParsingStrategy implements ParsingStrategy<ConnectionReadWriteSource> {
-
-        @Override
-        public Table parseToTable(ConnectionReadWriteSource content) {
-            ResultSet rs = content.getContent();
-            Map<Integer, Map<String, String>> result = buildTable(rs);
-            return new Table(result);
-        }
-
-        @SneakyThrows
-        private Map<Integer, Map<String, String>> buildTable(ResultSet rs) {
-            ResultSetMetaData metadata = rs.getMetaData();
-
-            Map<Integer, Map<String, String>> result = new LinkedHashMap<>();
-            int rowId = 0;
-            while (rs.next()) {
-                Map<String, String> row = new LinkedHashMap<>();
-                for (int index = 1; index <= metadata.getColumnCount(); index++) {
-                    row.put(metadata.getColumnName(index), rs.getString(index));
-                }
-                result.put(rowId, row);
-                rowId++;
-            }
-
-            return result;
-        }
+//        String content = inputSource.getContent();
+//        char firstChar = content.charAt(0);
+        String name = inputSource.getSource().getName();
+        if (name.endsWith(".json"))
+            return new JSONParsingStrategy();
+        if (name.endsWith(".xml"))
+            return new XMLParsingStrategy();
+        if (name.endsWith(".csv"))
+            return new CSVParsingStrategy();
+        return null;
+//        switch (name) {
+//            case '{':
+//            case '[':
+//            case '<':
+//                return new XMLParsingStrategy();
+//            default:
+//                return new CSVParsingStrategy();
+//        }
     }
 
     @RequiredArgsConstructor
     static class Table {
-
         private final Map<Integer, Map<String, String>> table;
-
         int size() {
             return table.size();
         }
@@ -242,8 +111,5 @@ public class ORM implements ORMInterface {
             Map<String, String> result = table.get(row);
             return result == null ? null : new LinkedHashMap<>(result);
         }
-
     }
-
-
 }
