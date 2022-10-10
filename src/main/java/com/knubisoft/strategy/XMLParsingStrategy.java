@@ -1,14 +1,15 @@
-package com.knubisoft;
+package com.knubisoft.strategy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.knubisoft.*;
 import lombok.SneakyThrows;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-class XMLParsingStrategy implements ParsingStrategy<FileReadWriteSource> {
+public class XMLParsingStrategy implements ParsingStrategy<FileReadWriteSource> {
     @SneakyThrows
     @Override
     public ORM.Table parseToTable(FileReadWriteSource content) {

@@ -1,5 +1,6 @@
 package com.knubisoft;
 
+import com.knubisoft.strategy.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -26,7 +27,6 @@ public class ORM implements ORMInterface {
             ParsingStrategy<FileReadWriteSource> parsingStrategy = getStringParsingStrategy((FileReadWriteSource) source);
             parsingStrategy.write(source, objects);
         }
-//        JSONParsingStrategy.write(source, objects);
     }
 
     private <T> List<T> convertTableToListOfClasses(Table table, Class<T> cls) {
@@ -101,7 +101,7 @@ public class ORM implements ORMInterface {
     }
 
     @RequiredArgsConstructor
-    static class Table {
+    public static class Table {
         private final Map<Integer, Map<String, String>> table;
         int size() {
             return table.size();

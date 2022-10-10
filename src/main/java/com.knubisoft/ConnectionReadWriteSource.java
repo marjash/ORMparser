@@ -10,7 +10,7 @@ import java.sql.Statement;
 
 @RequiredArgsConstructor
 @Getter
-final class ConnectionReadWriteSource implements DataReadWriteSource<ResultSet> {
+public final class ConnectionReadWriteSource implements DataReadWriteSource<ResultSet> {
     private final Connection source;
     private final String table;
 

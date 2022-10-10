@@ -1,11 +1,15 @@
-package com.knubisoft;
+package com.knubisoft.strategy;
+
+import com.knubisoft.DataReadWriteSource;
+import com.knubisoft.FileReadWriteSource;
+import com.knubisoft.ORM;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CSVParsingStrategy implements ParsingStrategy<FileReadWriteSource>{
+public class CSVParsingStrategy implements ParsingStrategy<FileReadWriteSource> {
     public static final String DELIMITER = ",";
     public static final String COMMENT = "--";
 

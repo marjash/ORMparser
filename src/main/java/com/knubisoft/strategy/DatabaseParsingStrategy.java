@@ -1,5 +1,8 @@
-package com.knubisoft;
+package com.knubisoft.strategy;
 
+import com.knubisoft.ConnectionReadWriteSource;
+import com.knubisoft.DataReadWriteSource;
+import com.knubisoft.ORM;
 import lombok.SneakyThrows;
 
 import java.sql.ResultSet;

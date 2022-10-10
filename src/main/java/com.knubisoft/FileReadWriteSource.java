@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
 @Getter
-final class FileReadWriteSource implements DataReadWriteSource<String> {
+public final class FileReadWriteSource implements DataReadWriteSource<String> {
     private final File source;
 
     @Override
